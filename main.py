@@ -14,6 +14,12 @@ login = ''
 password = ''
 select = ''
 mode = 'PRACTICE'
+ativo = ''
+valor = 0
+acao = ''
+tempo = 0
+martingale = ''
+martingale_op = 0
 # Sistema Login
 def login():
     log = str(input('Digite Seu login: ')).strip()
@@ -39,6 +45,8 @@ def menu():
     print('-' * (barrinha + 2))
 
     print('a) Trocar modo')
+    print('b) Abir ordem manualmente')
+    print()
     print('z) Sair')
     print()
     print('Selecione a opção: ')
@@ -70,12 +78,56 @@ if check == True:
             mode = changemode(mode)
             clear()
         elif select in 'Bb':
-            print('Abrindo ordem!')    
+            martingale = 0
+
+            print('*Abrindo ordem!*')
+            try:
+                ativo = (str(input('Selecione o ativo: ')).strip().upper())
+                valor = (int(input('Valor de entrada: ')))
+                acao = (str(input('Selecione o call or put: ')).strip())
+                tempo = (int(input('Tempo de operação [1/5/10/15]: ')))
+                martingale = (str(input('Deseja fazer martingale? [S/n]'))).strip().upper()
+
+                while martingale_op != 2:
+                    check, id = iq.buy(valor, ativo, acao, tempo)
+
+                    if check:
+                        print('\nCompra Realizada!')
+                    else:
+                        print('\nErro na compra')
+                        break
+
+                    print('\n---Verificando se ganhou!---')
+                    if iq.check_win_v3(id) > 0:
+                        print('Win')
+                        break
+                    elif iq.check_win_v3(id) == 0:
+                        print('Empate')
+                        break
+                    else:
+                        print('Loss')
+                        if martingale in 'Nn':
+                            break
+                        elif martingale in 'Ss':
+                            valor *= 2
+                            martingale_op += 1
+                            print('Executando Gale', martingale_op)
+                        else:
+                            break
+
+
+            except:
+                print('O correu um erro na compra!')
+            input('Aperte enter!')
+            clear()   
+
         elif select in 'Zz':
             clear()
             break
+
         else:
             print('Opção inválida')    
 
 else:
     print('Falha no login')    
+    
