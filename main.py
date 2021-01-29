@@ -47,6 +47,9 @@ def menu():
     print('a) Trocar modo')
     print('b) Abir ordem manualmente')
     print()
+    print('c) importar lista sinais')
+    print('d) Programar sinais manuais')
+
     print('z) Sair')
     print()
     print('Selecione a opção: ')
