@@ -20,6 +20,7 @@ acao = ''
 tempo = 0
 martingale = ''
 martingale_op = 0
+lista_sinais = list()
 # Sistema Login
 def login():
     log = str(input('Digite Seu login: ')).strip()
@@ -48,14 +49,14 @@ def menu():
     print('b) Abir ordem manualmente')
     print()
     print('c) importar lista sinais')
-    print('d) Programar sinais manuais')
+    print('d) EXECUTAR SINAIS*')
 
     print('z) Sair')
     print()
     print('Selecione a opção: ')
 
 
-def clear():
+def limpar():
     if os.name in "nt":
         os.system("cls")
     else:
@@ -72,6 +73,20 @@ def changemode(mode_f):
     return mode_f        
 
 
+def carregar_sinais():
+    arquivo = open('sinais.txt', encoding='UTF-8')
+    lista = arquivo.read()
+    arquivo.close
+
+    lista = lista.split('\n')
+
+    for index, a in enumerate(lista):
+        if a == '':
+            del lista[index]
+
+    return lista
+
+
 if check == True:
     while True:
         menu()
@@ -79,7 +94,7 @@ if check == True:
 
         if select in 'Aa':
             mode = changemode(mode)
-            clear()
+            limpar()
         elif select in 'Bb':
             martingale = 0
 
@@ -122,10 +137,26 @@ if check == True:
             except:
                 print('O correu um erro na compra!')
             input('Aperte enter!')
-            clear()   
+            limpar()  
+
+        elif select in 'Cc':
+            try:
+                lista_sinais = carregar_sinais()
+                print(lista_sinais)
+                print('Lista importada com sucesso')
+                select = str(input('Deseja Prosseguir? [S/n]')).strip().upper()[0]
+                if select in 'Nn':
+                    lista_sinais.clear()
+                    print('Lista apagada')
+            except:
+                print('Ocorreu um erro!')  
+
+        elif select in 'Dd':
+            print('Construindo')
+
 
         elif select in 'Zz':
-            clear()
+            limpar()
             break
 
         else:
