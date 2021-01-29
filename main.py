@@ -6,7 +6,7 @@ from iqoptionapi.stable_api import IQ_Option
 from tkinter import *
 import os
 import getpass
-from datetime import datetime
+from datetime import datetime, time
 from dateutil import tz
 
 # Declarando variáveis
@@ -78,8 +78,8 @@ def carregar_sinais():
     lista = arquivo.read()
     arquivo.close
 
-    lista = lista.split('\n')
-
+    lista = lista.split(',')
+    
     for index, a in enumerate(lista):
         if a == '':
             del lista[index]
@@ -152,7 +152,21 @@ if check == True:
                 print('Ocorreu um erro!')  
 
         elif select in 'Dd':
-            print('Construindo')
+            print(len(lista_sinais))
+            if len(lista_sinais) == 0:
+                print('Não há lista importadas.')
+            else:
+                print('Executando lista!')
+                while True:
+                    hora = datetime.now()
+                    hora = str(hora)
+                    
+                    if lista_sinais[0] in hora:
+                        print(lista_sinais)
+                        print('Entrada executada')
+                        del lista_sinais[0:5]
+                        print(lista_sinais)
+                        break
 
 
         elif select in 'Zz':
