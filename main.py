@@ -58,11 +58,14 @@ def menu(porcentagem):
     print(f'Meta de hoje: {iq.get_currency()} {meta:.2f}\n')
 
     print('a) Trocar modo')
+    print('c) Alterar meta')
+    print()
     print('b) Abir ordem manualmente')
-    print('0) Alterar meta')
-    print('c) importar lista sinais')
-    print('d) EXECUTAR SINAIS*')
-
+    print('d) importar lista sinais')
+    print()
+    print('e) EXECUTAR SINAIS*')
+    print('f) EXECUTAR MHI*')
+    print()
     print('z) Sair')
     print()
     print('Selecione a opção: ')
@@ -98,6 +101,33 @@ def carregar_sinais():
 
     return lista
 
+
+def comprar(value,active,action,time):
+    check, id = iq.buy(valor, ativo, acao, tempo)
+
+    if check:
+        print('\nCompra Realizada!')
+    else:
+        print('\nErro na compra')
+
+    return check, id
+
+
+def verificar_win(id):
+
+    print('--Verificando vitória!--')
+    if iq.check_win_v3(id) > 0:
+        print('Win')
+        status = 'win'
+    elif iq.check_win_v3(id) == 0:
+        print('Empate')
+        status = 'tie'
+    else:
+        print('loss')
+        status = 'loss'
+
+    return status    
+
 limpar()
 
 if check == True:
@@ -111,7 +141,7 @@ if check == True:
         elif select in 'Bb':
             martingale = 0
 
-            print('*Abrindo ordem!*')
+            print('\n*Abrindo ordem!*')
             try:
                 ativo = (str(input('Selecione o ativo: ')).strip().upper())
                 valor = (int(input('Valor de entrada: ')))
@@ -119,40 +149,27 @@ if check == True:
                 tempo = (int(input('Tempo de operação [1/5/10/15]: ')))
                 martingale = (str(input('Deseja fazer martingale? [S/n]'))).strip().upper()
 
-                while martingale_op != 2:
-                    check, id = iq.buy(valor, ativo, acao, tempo)
-
-                    if check:
-                        print('\nCompra Realizada!')
-                    else:
-                        print('\nErro na compra')
-                        break
-
-                    print('\n---Verificando se ganhou!---')
-                    if iq.check_win_v3(id) > 0:
-                        print('Win')
-                        break
-                    elif iq.check_win_v3(id) == 0:
-                        print('Empate')
-                        break
-                    else:
-                        print('Loss')
-                        if martingale in 'Nn':
+                while martingale_op == 3:
+                    
+                    check, id = comprar(valor, ativo, acao, tempo)
+                    if check == True:
+                        statuscompra = verificar_win(id)
+                        if statuscompra in 'tie' or statuscompra in 'win':
                             break
-                        elif martingale in 'Ss':
-                            valor *= 2
-                            martingale_op += 1
-                            print('Executando Gale', martingale_op)
+                        elif statuscompra in 'loss':
+                            if martingale in 'Ss':
+                                valor *= 2
+                                martingale_op += 1
+                                print('Executando Gale', martingale_op)
                         else:
                             break
-
 
             except:
                 print('O correu um erro na compra!')
             input('Aperte enter!')
             limpar()  
 
-        elif select in '0':
+        elif select in 'Cc':
             print(f'Alterando meta, meta atual é {porcentagem_meta*100:.0f}%')
             try:
                 porcentagem_meta = int(input('Digite a nova meta em porcento: '))
@@ -165,7 +182,7 @@ if check == True:
             except:
                 print('Ocorreu um erro')
 
-        elif select in 'Cc':
+        elif select in 'Dd':
             try:
                 lista_sinais = carregar_sinais()
                 print(lista_sinais)
@@ -177,7 +194,7 @@ if check == True:
             except:
                 print('Ocorreu um erro!')  
 
-        elif select in 'Dd':
+        elif select in 'Ee':
             if len(lista_sinais) < 5:
                 print('Lista inválida ou não importada.')
             else:
@@ -195,25 +212,20 @@ if check == True:
                             print('Entrada executada')
                             print(lista_sinais[0:5])
                             
+                            check, id = comprar(valor, ativo, acao, tempo)
+                            statuscompra = verificar_win(id)
 
-                            check, id = iq.buy(valor, ativo, acao, tempo)
-                            print('\n---Verificando se ganhou!---')
-
-                            if iq.check_win_v3(id) > 0:
-                                print('Win')
+                            if statuscompra in 'tie' or os.stat_result in 'win':
                                 dinheiro_ganho += iq.check_win_v3(id)
                                 del lista_sinais[0:5]
                                 break
-                            elif iq.check_win_v3(id) == 0:
-                                print('Empate')
-                                del lista_sinais[0:5]
-                                break
                             else:
-                                print('Loss')
                                 valor *= 2
                                 martingale_op += 1
-                                if martingale_op < 3:
-                                    print('Executando Gale', martingale_op)
+                                if martingale_op == 3:
+                                    print('Stop loss')
+                        if martingale_op == 3:
+                            break            
                         ativo = ''
                         valor = 0
                         acao = ''
@@ -223,6 +235,8 @@ if check == True:
                         if dinheiro_ganho >= meta:
                             break
 
+        elif select in 'Ff':
+            print('Executando')               
 
         elif select in 'Zz':
             limpar()
