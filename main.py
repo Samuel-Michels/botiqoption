@@ -242,6 +242,7 @@ if check == True:
         elif select in 'Ff':
             ativo = str(input(' Indique uma paridade para operar: ')).strip().upper()
             valor = float(input(' Indique um valor para entrar: '))
+            limite_gale = int(input('Quantos Gales?: '))
             meta = float(meta)
             while True:
                 minutos = float(((datetime.now()).strftime('%M.%S'))[1:])
@@ -253,6 +254,11 @@ if check == True:
                     print(f'Meta {iq.get_currency()} {meta}')
                     print(f'Meta batida, lucro: {iq.get_currency()} {dinheiro_ganho}')
                     break
+
+                if martingale_op == limite_gale: 
+                    martingale_op = 0
+                    print('STOP_LOSS!!')
+                    break    
 
                 if entrar:
                     print('\n\nIniciando operação!')
@@ -286,12 +292,11 @@ if check == True:
                             else:
                                 valor *= 2
                                 martingale_op += 1
-                                if martingale_op == 3: 
-                                    martingale_op = 0
+                                if martingale_op == limite_gale: 
                                     print('STOP_LOSS!!')
                                     break
 
-                time.sleep(0.5)      
+                time.sleep(0.5)  
 
         elif select in 'Zz':
             limpar()
