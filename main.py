@@ -21,6 +21,11 @@ tempo = 0
 martingale = ''
 martingale_op = 0
 lista_sinais = list()
+
+meta = 0
+porcentagem_meta = 0.02
+saldo = 0
+dinheiro_ganho = 0
 # Sistema Login
 def login():
     log = str(input('Digite Seu login: ')).strip()
@@ -37,17 +42,24 @@ iq = IQ_Option(login, password)
 
 check, reason = iq.connect()
 
+
+
 # Funções
-def menu():
+def menu(porcentagem):
     barrinha = len(iq.get_currency()) + len(str(iq.get_balance())) + len(mode)
 
+    saldo = float(iq.get_balance())
+    meta = saldo * porcentagem
+
+    print(f'{datetime.today()}')
     print('-' * (barrinha + 2))
     print(f'{iq.get_currency()} {iq.get_balance()} {mode}')
     print('-' * (barrinha + 2))
+    print(f'Meta de hoje: {iq.get_currency()} {meta:.2f}\n')
 
     print('a) Trocar modo')
     print('b) Abir ordem manualmente')
-    print()
+    print('0) Alterar meta')
     print('c) importar lista sinais')
     print('d) EXECUTAR SINAIS*')
 
@@ -86,10 +98,11 @@ def carregar_sinais():
 
     return lista
 
+limpar()
 
 if check == True:
     while True:
-        menu()
+        menu(porcentagem_meta)
         select = str(input('->')).strip().upper()
 
         if select in 'Aa':
@@ -139,6 +152,19 @@ if check == True:
             input('Aperte enter!')
             limpar()  
 
+        elif select in '0':
+            print(f'Alterando meta, meta atual é {porcentagem_meta*100:.0f}%')
+            try:
+                porcentagem_meta = int(input('Digite a nova meta em porcento: '))
+                if porcentagem_meta <= 0:
+                    print('Não pode ser zero ou menor que zero')
+                    porcentagem_meta = 0.02
+                elif porcentagem_meta > 0:
+                    print('Meta alterada')
+                    porcentagem_meta = porcentagem_meta / 100   
+            except:
+                print('Ocorreu um erro')
+
         elif select in 'Cc':
             try:
                 lista_sinais = carregar_sinais()
@@ -175,6 +201,7 @@ if check == True:
 
                             if iq.check_win_v3(id) > 0:
                                 print('Win')
+                                dinheiro_ganho += iq.check_win_v3(id)
                                 del lista_sinais[0:5]
                                 break
                             elif iq.check_win_v3(id) == 0:
@@ -192,9 +219,9 @@ if check == True:
                         acao = ''
                         tempo = 0
                         martingale_op = 0        
-                        input('Pressione enter')
-
-                        break
+                        
+                        if dinheiro_ganho >= meta:
+                            break
 
 
         elif select in 'Zz':
