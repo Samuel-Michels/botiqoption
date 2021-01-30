@@ -152,9 +152,8 @@ if check == True:
                 print('Ocorreu um erro!')  
 
         elif select in 'Dd':
-            print(len(lista_sinais))
-            if len(lista_sinais) == 0:
-                print('Não há lista importadas.')
+            if len(lista_sinais) < 5:
+                print('Lista inválida ou não importada.')
             else:
                 print('Executando lista!')
                 while True:
@@ -162,10 +161,39 @@ if check == True:
                     hora = str(hora)
                     
                     if lista_sinais[0] in hora:
-                        print(lista_sinais)
-                        print('Entrada executada')
-                        del lista_sinais[0:5]
-                        print(lista_sinais)
+                        ativo = (str(lista_sinais[1]).strip().upper())
+                        valor = (int(lista_sinais[3]))
+                        acao = (str(lista_sinais[2]))
+                        tempo = (int(lista_sinais[4]))
+                        while martingale_op != 3:
+                            print('Entrada executada')
+                            print(lista_sinais[0:5])
+                            
+
+                            check, id = iq.buy(valor, ativo, acao, tempo)
+                            print('\n---Verificando se ganhou!---')
+
+                            if iq.check_win_v3(id) > 0:
+                                print('Win')
+                                del lista_sinais[0:5]
+                                break
+                            elif iq.check_win_v3(id) == 0:
+                                print('Empate')
+                                del lista_sinais[0:5]
+                                break
+                            else:
+                                print('Loss')
+                                valor *= 2
+                                martingale_op += 1
+                                if martingale_op < 3:
+                                    print('Executando Gale', martingale_op)
+                        ativo = ''
+                        valor = 0
+                        acao = ''
+                        tempo = 0
+                        martingale_op = 0        
+                        input('Pressione enter')
+
                         break
 
 
