@@ -247,7 +247,7 @@ if check == True:
                 minutos = float(((datetime.now()).strftime('%M.%S'))[1:])
                 entrar = True if (minutos >= 4.58 and minutos <= 5) or minutos >= 9.58 else False
                 limpar()
-                print('Hora de entrar?',entrar,'/ Minutos:',minutos)
+                print(f'Capturando e análisando velas, Minutos: {minutos}')
                 
                 if dinheiro_ganho >= meta:
                     print(f'Meta {iq.get_currency()} {meta}')
