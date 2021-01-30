@@ -6,7 +6,8 @@ from iqoptionapi.stable_api import IQ_Option
 from tkinter import *
 import os
 import getpass
-from datetime import datetime, time
+import time
+from datetime import datetime
 from dateutil import tz
 
 # Declarando variáveis
@@ -22,10 +23,10 @@ martingale = ''
 martingale_op = 0
 lista_sinais = list()
 
-meta = 0
+meta = float()
 porcentagem_meta = 0.02
 saldo = 0
-dinheiro_ganho = 0
+dinheiro_ganho = float()
 # Sistema Login
 def login():
     log = str(input('Digite Seu login: ')).strip()
@@ -69,6 +70,8 @@ def menu(porcentagem):
     print('z) Sair')
     print()
     print('Selecione a opção: ')
+
+    return meta
 
 
 def limpar():
@@ -132,12 +135,13 @@ limpar()
 
 if check == True:
     while True:
-        menu(porcentagem_meta)
+        meta = menu(porcentagem_meta)
         select = str(input('->')).strip().upper()
 
         if select in 'Aa':
             mode = changemode(mode)
             limpar()
+
         elif select in 'Bb':
             martingale = 0
 
@@ -236,7 +240,58 @@ if check == True:
                             break
 
         elif select in 'Ff':
-            print('Executando')               
+            ativo = str(input(' Indique uma paridade para operar: ')).strip().upper()
+            valor = float(input(' Indique um valor para entrar: '))
+            meta = float(meta)
+            while True:
+                minutos = float(((datetime.now()).strftime('%M.%S'))[1:])
+                entrar = True if (minutos >= 4.58 and minutos <= 5) or minutos >= 9.58 else False
+                limpar()
+                print('Hora de entrar?',entrar,'/ Minutos:',minutos)
+                
+                if dinheiro_ganho >= meta:
+                    print(f'Meta {iq.get_currency()} {meta}')
+                    print(f'Meta batida, lucro: {iq.get_currency()} {dinheiro_ganho}')
+                    break
+
+                if entrar:
+                    print('\n\nIniciando operação!')
+                    acao = False
+                    print('Verificando cores..', end='')
+                    velas = iq.get_candles(ativo, 60, 3, time.time())
+                    
+                    velas[0] = 'g' if velas[0]['open'] < velas[0]['close'] else 'r' if velas[0]['open'] > velas[0]['close'] else 'd'
+                    velas[1] = 'g' if velas[1]['open'] < velas[1]['close'] else 'r' if velas[1]['open'] > velas[1]['close'] else 'd'
+                    velas[2] = 'g' if velas[2]['open'] < velas[2]['close'] else 'r' if velas[2]['open'] > velas[2]['close'] else 'd'
+                    
+                    cores = velas[0] + ' ' + velas[1] + ' ' + velas[2]		
+                    print(cores)
+                
+                    if cores.count('g') > cores.count('r') and cores.count('d') == 0 : acao = 'put'
+                    if cores.count('r') > cores.count('g') and cores.count('d') == 0 : acao = 'call'
+                    
+                    
+                    if acao:
+                        
+                        print('Direção:',acao)
+                        while True:
+                            check, id = comprar(valor, ativo, acao, 1)
+
+                            statuscompra = verificar_win(id)
+
+
+                            if statuscompra in 'win' or statuscompra in 'tie':
+                                dinheiro_ganho += iq.check_win_v3(id)
+                                break
+                            else:
+                                valor *= 2
+                                martingale_op += 1
+                                if martingale_op == 3: 
+                                    martingale_op = 0
+                                    print('STOP_LOSS!!')
+                                    break
+
+                time.sleep(0.5)      
 
         elif select in 'Zz':
             limpar()
