@@ -262,7 +262,7 @@ if check == True:
                 entrar = True if (minutos >= 4.58 and minutos <= 5) or minutos >= 9.58 else False
                 limpar()
                 print(f'Capturando e análisando velas, Minutos: {minutos}')
-                
+                #SAmuel e lindo
                 if dinheiro_ganho >= meta:
                     print(f'Meta {iq.get_currency()} {meta}')
                     print(f'Meta batida, lucro: {iq.get_currency()} {dinheiro_ganho}')
