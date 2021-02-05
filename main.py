@@ -1,8 +1,8 @@
-#Importando API
+# Importando API
 from iqoptionapi_master import iqoptionapi
 from iqoptionapi.stable_api import IQ_Option
 
-#Importando demais bibliotecas
+# Importando demais bibliotecas
 from tkinter import *
 import os
 import getpass
@@ -22,11 +22,13 @@ tempo = 0
 martingale = ''
 martingale_op = 0
 lista_sinais = list()
+controle_gale = 0
 
 meta = float()
 porcentagem_meta = 0.02
 saldo = 0
 dinheiro_ganho = float()
+
 # Sistema Login
 def login():
     log = str(input('Digite Seu login: ')).strip()
@@ -42,7 +44,6 @@ login, password = login()
 iq = IQ_Option(login, password)
 
 check, reason = iq.connect()
-
 
 
 # Funções
@@ -138,10 +139,12 @@ if check == True:
         meta = menu(porcentagem_meta)
         select = str(input('->')).strip().upper()
 
+        # Mudar DEMO/REAL
         if select in 'Aa':
             mode = changemode(mode)
             limpar()
-
+        
+        #Abrir ordem manual
         elif select in 'Bb':
             martingale = 0
 
@@ -173,6 +176,7 @@ if check == True:
             input('Aperte enter!')
             limpar()  
 
+        #Definir Nova meta
         elif select in 'Cc':
             print(f'Alterando meta, meta atual é {porcentagem_meta*100:.0f}%')
             try:
@@ -186,6 +190,7 @@ if check == True:
             except:
                 print('Ocorreu um erro')
 
+        #Carregar lista de sinais
         elif select in 'Dd':
             try:
                 lista_sinais = carregar_sinais()
@@ -198,6 +203,7 @@ if check == True:
             except:
                 print('Ocorreu um erro!')  
 
+        #Executar lista de sinais 
         elif select in 'Ee':
             if len(lista_sinais) < 5:
                 print('Lista inválida ou não importada.')
@@ -220,16 +226,22 @@ if check == True:
                             statuscompra = verificar_win(id)
 
                             if statuscompra in 'tie' or os.stat_result in 'win':
-                                dinheiro_ganho += iq.check_win_v3(id)
+                                if martingale_op > 0:
+                                    dinheiro_ganho += iq.check_win_v3(id) - controle_gale
+                                else:
+                                    dinheiro_ganho += iq.check_win_v3(id)
+
                                 del lista_sinais[0:5]
                                 break
                             else:
+                                controle_gale += valor
                                 valor *= 2
                                 martingale_op += 1
                                 if martingale_op == 3:
                                     print('Stop loss')
                         if martingale_op == 3:
-                            break            
+                            break 
+                        controle_gale = 0           
                         ativo = ''
                         valor = 0
                         acao = ''
@@ -239,6 +251,7 @@ if check == True:
                         if dinheiro_ganho >= meta:
                             break
 
+        #Executar MHI
         elif select in 'Ff':
             ativo = str(input(' Indique uma paridade para operar: ')).strip().upper()
             valor = float(input(' Indique um valor para entrar: '))
@@ -287,9 +300,14 @@ if check == True:
 
 
                             if statuscompra in 'win' or statuscompra in 'tie':
-                                dinheiro_ganho += iq.check_win_v3(id)
+                                if martingale_op > 0:
+                                    dinheiro_ganho += iq.check_win_v3(id) - controle_gale
+                                else:
+                                    dinheiro_ganho += iq.check_win_v3(id)
+
                                 break
                             else:
+                                controle_gale += valor
                                 valor *= 2
                                 martingale_op += 1
                                 if martingale_op == limite_gale: 
@@ -297,7 +315,11 @@ if check == True:
                                     break
 
                 time.sleep(0.5)  
+                
+            controle_gale = 0
+            martingale_op = 0
 
+        #Sair
         elif select in 'Zz':
             limpar()
             break
