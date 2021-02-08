@@ -3,7 +3,6 @@ from iqoptionapi_master import iqoptionapi
 from iqoptionapi.stable_api import IQ_Option
 
 # Importando demais bibliotecas
-from tkinter import *
 import os
 import getpass
 import time
@@ -23,6 +22,8 @@ martingale = ''
 martingale_op = 0
 lista_sinais = list()
 controle_gale = 0
+warningvar = int()
+winamount = 0
 
 meta = float()
 porcentagem_meta = 0.02
@@ -130,7 +131,39 @@ def verificar_win(id):
         print('loss')
         status = 'loss'
 
-    return status    
+    return status   
+
+
+def martingale_fun(value, active, action, time, times):
+    value_safe = value
+    value *= 2
+    counter = 0
+    aviso = 0
+    valorganho = 0 
+
+    while True:
+        check, id = iq.buy(value, active, action, time)
+        if check == True:
+            print('\nCompra Realizada!')
+            statuscompra = verificar_win(id)
+
+            if statuscompra in 'win':
+                valorganho = iq.check_win_v3(id) - value
+                break
+            elif statuscompra in 'tie':
+                print('Break')
+                break
+            else:
+                value *= 2
+                counter += 1
+
+            if times == counter:
+                aviso = 1
+                break
+
+    return value_safe, valorganho, int(aviso)
+
+
 
 limpar()
 
@@ -156,25 +189,23 @@ if check == True:
                 tempo = (int(input('Tempo de operação [1/5/10/15]: ')))
                 martingale = (str(input('Deseja fazer martingale? [S/n]'))).strip().upper()
 
-                while martingale_op == 3:
-                    
-                    check, id = comprar(valor, ativo, acao, tempo)
-                    if check == True:
-                        statuscompra = verificar_win(id)
-                        if statuscompra in 'tie' or statuscompra in 'win':
-                            break
-                        elif statuscompra in 'loss':
-                            if martingale in 'Ss':
-                                valor *= 2
-                                martingale_op += 1
-                                print('Executando Gale', martingale_op)
-                        else:
-                            break
+                check, id = comprar(valor, ativo, acao, tempo)
+                if check == True:
+                    statuscompra = verificar_win(id)
 
+                    if statuscompra in 'tie' or statuscompra in 'win':
+                        break
+                    elif statuscompra in 'loss':
+                        while True:
+                            if martingale in 'Ss':
+                                valor, winamount, warningvar = martingale_fun(valor,ativo,acao,tempo,2)
+                                break
+                            else:
+                                break             
             except:
                 print('O correu um erro na compra!')
-            input('Aperte enter!')
-            limpar()  
+                input('Aperte enter!')
+                limpar()  
 
         #Definir Nova meta
         elif select in 'Cc':
@@ -205,10 +236,11 @@ if check == True:
 
         #Executar lista de sinais 
         elif select in 'Ee':
-            if len(lista_sinais) < 5:
+            if len(lista_sinais) < 5 or len(lista_sinais) // 5 != 0:
                 print('Lista inválida ou não importada.')
             else:
                 print('Executando lista!')
+                print(f'Próxima entrada: {lista_sinais[0]}')
                 while True:
                     hora = datetime.now()
                     hora = str(hora)
@@ -218,37 +250,34 @@ if check == True:
                         valor = (int(lista_sinais[3]))
                         acao = (str(lista_sinais[2]))
                         tempo = (int(lista_sinais[4]))
-                        while martingale_op != 3:
+                        while True:
                             print('Entrada executada')
                             print(lista_sinais[0:5])
                             
                             check, id = comprar(valor, ativo, acao, tempo)
                             statuscompra = verificar_win(id)
 
-                            if statuscompra in 'tie' or os.stat_result in 'win':
-                                if martingale_op > 0:
-                                    dinheiro_ganho += iq.check_win_v3(id) - controle_gale
-                                else:
-                                    dinheiro_ganho += iq.check_win_v3(id)
+                            if check == False:
+                                break
 
+                            if statuscompra in 'win' or statuscompra in 'tie':
+                                dinheiro_ganho += iq.check_win_v3(id)
                                 del lista_sinais[0:5]
                                 break
                             else:
-                                controle_gale += valor
-                                valor *= 2
-                                martingale_op += 1
-                                if martingale_op == 3:
-                                    print('Stop loss')
-                        if martingale_op == 3:
-                            break 
-                        controle_gale = 0           
-                        ativo = ''
-                        valor = 0
-                        acao = ''
-                        tempo = 0
-                        martingale_op = 0        
+                                valor, winamount, warningvar = martingale_fun(valor,ativo,acao,tempo,2)
+                                if warningvar != 1:
+                                    dinheiro_ganho += winamount
+                                break      
                         
                         if dinheiro_ganho >= meta:
+                            limpar()
+                            print(f'Meta batida, Valor ganho: {dinheiro_ganho:.2f}, Meta Visada:{meta:.2f}')
+                            break
+                        
+                        if warningvar == 1:
+                            print('Excedido martingale \n Stop loss!')
+                            warningvar = 0
                             break
 
         #Executar MHI
@@ -262,14 +291,14 @@ if check == True:
                 entrar = True if (minutos >= 4.58 and minutos <= 5) or minutos >= 9.58 else False
                 limpar()
                 print(f'Capturando e análisando velas, Minutos: {minutos}')
-                #SAmuel e lindo
+                
                 if dinheiro_ganho >= meta:
-                    print(f'Meta {iq.get_currency()} {meta}')
-                    print(f'Meta batida, lucro: {iq.get_currency()} {dinheiro_ganho}')
+                    print(f'Meta {iq.get_currency()} {meta:.2f}')
+                    print(f'Meta batida, lucro: {iq.get_currency()} {dinheiro_ganho:.2f}')
                     break
 
-                if martingale_op == limite_gale: 
-                    martingale_op = 0
+                if warningvar == 1: 
+                    warningvar = 0
                     print('STOP_LOSS!!')
                     break    
 
@@ -300,20 +329,14 @@ if check == True:
 
 
                             if statuscompra in 'win' or statuscompra in 'tie':
-                                if martingale_op > 0:
-                                    dinheiro_ganho += iq.check_win_v3(id) - controle_gale
-                                else:
                                     dinheiro_ganho += iq.check_win_v3(id)
-
-                                break
-                            else:
-                                controle_gale += valor
-                                valor *= 2
-                                martingale_op += 1
-                                if martingale_op == limite_gale: 
-                                    print('STOP_LOSS!!')
                                     break
-
+                            else:
+                                valor, winamount, warningvar = martingale_fun(valor,ativo,acao,1,limite_gale)
+                                if warningvar != 1:
+                                    dinheiro_ganho += winamount
+                                break
+                
                 time.sleep(0.5)  
                 
             controle_gale = 0
