@@ -1,20 +1,35 @@
 from tkinter import *
 
-app = Tk()
-app.title('IQ Michels BOT')
-app.geometry('290x200')
-app.configure(background='#008080')
+def login():
+    #Invocando Função
+    login = Tk()
+    #Definindo Nome Janela
+    login.title('Yellow Trader BOT')
+    #Definindo Dimensões tela
+    login.geometry('300x200')
+    #Definindo cor Background
+    login.configure(background='#FFFF00')
+    login.resizable(False, False)
+    
+    
 
-# anchor +> N Norte S south W Oeste E leste
-Label(app, text='Login:',background='#dde',foreground='#000', anchor=W).place(x=10,y=10,width=50,height=20)
+    # anchor +> N Norte S south W Oeste E leste
+    Label(login, text='Login',background='#dde',foreground='#000', anchor=W).place(x=10,y=10,width=100,height=20)
 
-email=Entry(app)
-email.place(x=60,y=10,width=200,height=20)
+    email=Entry(login)
+    email.place(x=70,y=10,width=200,height=20)
 
-Label(app, text='Senha:',background='#dde',foreground='#000', anchor=W).place(x=10,y=40,width=50,height=20)
+    Label(login, text='Senha',background='#dde',foreground='#000', anchor=W).place(x=10,y=40,width=100,height=20)
 
-senha=Entry(app)
-senha.place(x=60,y=40,width=200,height=20)
+    senha=Entry(login)
+    senha.place(x=70,y=40,width=200,height=20)
+
+    autenticar = Button(login, text=('ENTRAR'))
+    autenticar.pack()
 
 
-app.mainloop()
+    login.mainloop()
+
+    return email, senha
+
+login()
