@@ -6,6 +6,9 @@ from iqoptionapi.stable_api import IQ_Option
 import os
 import getpass
 import time
+import json
+import requests
+from threading import Thread, Lock
 from datetime import datetime
 from dateutil import tz
 
@@ -30,6 +33,9 @@ porcentagem_meta = 0.02
 saldo = 0
 dinheiro_ganho = float()
 
+global config
+config = {'url': 'https://api.telegram.org/bot1676571990:AAFHwpVqZMGh-wnYRzL6nh4YPxkRLcTsees/', 'lock':Lock()}
+
 # Sistema Login
 def login():
     log = str(input('Digite Seu login: ')).strip()
@@ -48,7 +54,7 @@ check, reason = iq.connect()
 
 
 # Funções
-def menu(porcentagem):
+def menu(porcentagem=2):
     barrinha = len(iq.get_currency()) + len(str(iq.get_balance())) + len(mode)
 
     saldo = float(iq.get_balance())
@@ -164,6 +170,21 @@ def martingale_fun(value, active, action, time, times):
     return value_safe, valorganho, int(aviso)
 
 
+def del_update(data):
+	global config	
+	
+	config['lock'].acquire()
+	requests.post(config['url'] + 'getUpdates', {'offset': data['update_id']+1})
+	config['lock'].release()
+
+
+def send_message(data, msg):
+	global config
+	
+	config['lock'].acquire()
+	requests.post(config['url'] + 'sendMessage', {'chat_id': data['message']['chat']['id'], 'text': str(msg)})
+	config['lock'].release()
+
 
 limpar()
 
@@ -176,7 +197,7 @@ if check == True:
         if select in 'Aa':
             mode = changemode(mode)
             limpar()
-        
+
         #Abrir ordem manual
         elif select in 'Bb':
             martingale = 0
