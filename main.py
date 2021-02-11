@@ -295,6 +295,7 @@ if check == True:
                 if dinheiro_ganho >= meta:
                     print(f'Meta {iq.get_currency()} {meta:.2f}')
                     print(f'Meta batida, lucro: {iq.get_currency()} {dinheiro_ganho:.2f}')
+                    dinheiro_ganho = 0
                     break
 
                 if warningvar == 1: 
