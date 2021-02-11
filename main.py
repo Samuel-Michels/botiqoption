@@ -254,7 +254,7 @@ if check == True:
 
         #Executar lista de sinais 
         elif select in 'Ee':
-            if len(lista_sinais) < 5 or len(lista_sinais) // 5 != 0:
+            if len(lista_sinais) < 5:
                 print('Lista inválida ou não importada.')
             else:
                 print('Executando lista!')
@@ -268,7 +268,20 @@ if check == True:
                         valor = (int(lista_sinais[3]))
                         acao = (str(lista_sinais[2]))
                         tempo = (int(lista_sinais[4]))
+                        
+                        timeframe = 5
+                        velas = iq.get_candles(ativo, (int(timeframe) * 60), 20,  time.time())
+
+                        ultimo = round(velas[0]['close'], 4)
+                        primeiro = round(velas[-1]['close'], 4)
+
+                        diferenca = abs( round( ( (ultimo - primeiro) / primeiro ) * 100, 3) )
+                        tendencia = "call" if ultimo < primeiro and diferenca > 0.01 else "put" if ultimo > primeiro and diferenca > 0.01 else False
+                        
                         while True:
+                            if acao != tendencia:
+                                print(lista_sinais[0:5])
+                                break
                             print('Entrada executada')
                             print(lista_sinais[0:5])
                             
@@ -293,10 +306,10 @@ if check == True:
                             print(f'Meta batida, Valor ganho: {dinheiro_ganho:.2f}, Meta Visada:{meta:.2f}')
                             break
                         
-                        if warningvar == 1:
-                            print('Excedido martingale \n Stop loss!')
-                            warningvar = 0
-                            break
+                    if warningvar == 1:
+                        print('Excedido martingale \n Stop loss!')
+                        warningvar = 0
+                        break
 
         #Executar MHI
         elif select in 'Ff':
@@ -365,6 +378,20 @@ if check == True:
         elif select in 'Zz':
             limpar()
             break
+
+        elif select in '0':
+            par = 'EURUSD'
+            timeframe = 5
+
+            velas = iq.get_candles(par, (int(timeframe) * 60), 20,  time.time())
+
+            ultimo = round(velas[0]['close'], 4)
+            primeiro = round(velas[-1]['close'], 4)
+
+            diferenca = abs( round( ( (ultimo - primeiro) / primeiro ) * 100, 3) )
+            tendencia = "CALL" if ultimo < primeiro and diferenca > 0.01 else "PUT" if ultimo > primeiro and diferenca > 0.01 else False
+            
+            print(tendencia)
 
         else:
             print('Opção inválida')    
