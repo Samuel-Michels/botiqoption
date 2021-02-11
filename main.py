@@ -30,8 +30,21 @@ porcentagem_meta = 0.02
 saldo = 0
 dinheiro_ganho = float()
 
+def carregar_login():
+    arquivo = open('/home/michels/Documentos/iq.txt', encoding='UTF-8')
+    lista = arquivo.read()
+    arquivo.close
+
+    lista = lista.split(',')
+    
+    for index, a in enumerate(lista):
+        if a == '':
+            del lista[index]
+
+    return lista
+
 # Sistema Login
-def login():
+def login_manual():
     log = str(input('Digite Seu login: ')).strip()
     passwd = getpass.getpass('Digite sua senha: ')
 
@@ -39,13 +52,18 @@ def login():
 
     return log, passwd
 
-
-login, password = login()
-
-iq = IQ_Option(login, password)
+try:
+    logar = carregar_login()
+    login = str(logar[0])
+    password = str(logar[1])
+    iq = IQ_Option(login, password)
+except:
+    login, password = login_manual()
+    iq = IQ_Option(login, password)
 
 check, reason = iq.connect()
 
+print(reason)
 
 # Funções
 def menu(porcentagem):
